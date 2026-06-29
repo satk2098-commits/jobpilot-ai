@@ -1,0 +1,492 @@
+import streamlit as st
+import PyPDF2
+import docx
+import re
+import plotly.graph_objects as go
+import plotly.express as px
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib.enums import TA_CENTER
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+
+APP_NAME = "ATS Resume Optimizer Pro"
+
+REGIONS = {
+    "Global / Remote": "Global",
+    "Saudi Arabia": "Saudi Arabia",
+    "UAE": "UAE",
+    "Egypt": "Egypt",
+    "Qatar": "Qatar",
+    "Jordan": "Jordan"
+}
+
+JOBS = [
+    {"id": 1, "title": "Python Developer", "company": "Tech Solutions", "location": "Riyadh, KSA", "salary": "8000-12000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "git", "api"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-15"},
+    {"id": 2, "title": "Petroleum Engineer", "company": "Aramco", "location": "Dhahran, KSA", "salary": "15000-25000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["petroleum", "reservoir", "drilling", "simulation"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-14"},
+    {"id": 3, "title": "Data Analyst", "company": "STC", "location": "Riyadh, KSA", "salary": "9000-14000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "excel", "power bi"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-13"},
+    {"id": 4, "title": "Mechanical Engineer", "company": "ADNOC", "location": "Abu Dhabi, UAE", "salary": "18000-22000 AED", "category": "engineering", "region": "UAE", "skills": ["autocad", "solidworks", "piping"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-12"},
+    {"id": 5, "title": "Business Analyst", "company": "Consulting Group", "location": "Dubai, UAE", "salary": "12000-18000 AED", "category": "business", "region": "UAE", "skills": ["excel", "sql", "analysis", "communication"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-11"},
+    {"id": 6, "title": "Data Scientist", "company": "CairoTech", "location": "Cairo, Egypt", "salary": "12000-20000 EGP", "category": "tech", "region": "Egypt", "skills": ["python", "machine learning", "pandas", "numpy"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-10"},
+    {"id": 7, "title": "IT Support", "company": "Qatar Energy", "location": "Doha, Qatar", "salary": "9000-14000 QAR", "category": "tech", "region": "Qatar", "skills": ["linux", "network", "troubleshooting"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-09"},
+    {"id": 8, "title": "Project Manager", "company": "Amman Tech", "location": "Amman, Jordan", "salary": "900-1500 JOD", "category": "business", "region": "Jordan", "skills": ["project management", "leadership", "agile"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-08"},
+    {"id": 9, "title": "Frontend Developer", "company": "Global Apps", "location": "Remote", "salary": "3000-6000 USD", "category": "tech", "region": "Global", "skills": ["javascript", "react", "css", "git"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-07"},
+    {"id": 10, "title": "Process Engineer", "company": "SABIC", "location": "Jubail, KSA", "salary": "12000-18000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["hysys", "process simulation", "safety engineering"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-06"},
+]
+
+SKILLS_DB = {
+    "tech": ["python", "sql", "git", "api", "javascript", "react", "css", "html", "linux", "network", "power bi", "machine learning", "pandas", "numpy"],
+    "engineering": ["petroleum", "reservoir", "drilling", "simulation", "autocad", "solidworks", "piping", "hysys", "process simulation", "safety engineering"],
+    "business": ["excel", "analysis", "communication", "leadership", "project management", "agile"]
+}
+
+# =====================================================
+# FULL TRANSLATION SYSTEM
+# =====================================================
+def get_text(lang):
+    if lang == "ar":
+        return {
+            "app_title": "محسن السيرة الذاتية ومطابقة الوظائف",
+            "settings": "الإعدادات",
+            "upload": "رفع السيرة الذاتية",
+            "region": "المنطقة المستهدفة",
+            "category": "مجال الوظائف",
+            "all_cats": "كل المجالات",
+            "auto": "اكتشاف تلقائي",
+            "tech": "تقنية المعلومات",
+            "engineering": "الهندسة والبترول",
+            "business": "إدارة الأعمال",
+            "min_match": "الحد الأدنى للتطابق %",
+            "language": "اللغة",
+            "tab_ats": "تحليل ATS",
+            "tab_improve": "تحسين السيرة",
+            "tab_jobs": "الوظائف المناسبة",
+            "tab_pdf": "إنشاء السيرة PDF",
+            "ats_score": "درجة التوافق مع ATS",
+            "words": "عدد الكلمات",
+            "issues": "المشاكل",
+            "jobs_found": "الوظائف المتاحة",
+            "skills_detected": "المهارات المكتشفة",
+            "issues_title": "مشاكل تحتاج إصلاح",
+            "no_issues": "لا توجد مشاكل كبيرة",
+            "priorities": "إجراءات ذات أولوية",
+            "action_plan": "خطة العمل",
+            "target_score": "الدرجة المستهدفة",
+            "target_reached": "تم بلوغ الهدف!",
+            "need_more": "تحتاج نقاط إضافية",
+            "jobs_in": "وظائف في",
+            "no_jobs": "لا توجد وظائف. جرب تغيير المنطقة أو المجال.",
+            "matched": "مهارات متطابقة",
+            "missing": "مهارات ناقصة",
+            "apply": "تقدم الآن",
+            "match_score": "نسبة التطابق",
+            "cover_letter": "خطاب تغطية لـ",
+            "generate_pdf": "إنشاء سيرة ذاتية محسنة PDF",
+            "download_pdf": "تحميل السيرة الذاتية المحسنة PDF",
+            "pdf_ready": "ملف PDF جاهز للتحميل",
+            "welcome": "مرحباً بك!",
+            "welcome_text": "ارفع سيرتك الذاتية للحصول على تحليل ATS ونصائح تحسين ووظائف مناسبة وسيرة محسنة PDF.",
+            "total": "إجمالي الوظائف",
+            "tech_count": "وظائف تقنية",
+            "eng_count": "وظائف هندسية",
+            "biz_count": "وظائف أعمال",
+            "file_error": "تعذر قراءة الملف. جرب ملف آخر.",
+            "detected": "المجالات المكتشفة",
+            "showing": "عرض وظائف في",
+            "strong": "تطابق قوي",
+            "good": "تطابق جيد",
+            "weak": "تطابق ضعيف",
+            "posted": "تاريخ النشر",
+        }
+    else:
+        return {
+            "app_title": "ATS Resume Optimizer & Job Matcher",
+            "settings": "Settings",
+            "upload": "Upload Resume",
+            "region": "Target Region",
+            "category": "Job Category",
+            "all_cats": "All Categories",
+            "auto": "Auto Detect",
+            "tech": "Tech / IT",
+            "engineering": "Engineering & Petroleum",
+            "business": "Business & Management",
+            "min_match": "Minimum Match %",
+            "language": "Language",
+            "tab_ats": "ATS Analysis",
+            "tab_improve": "Resume Improvement",
+            "tab_jobs": "Job Matches",
+            "tab_pdf": "Resume PDF",
+            "ats_score": "ATS Score",
+            "words": "Word Count",
+            "issues": "Issues",
+            "jobs_found": "Jobs Found",
+            "skills_detected": "Skills Detected",
+            "issues_title": "Issues to Fix",
+            "no_issues": "No major issues found!",
+            "priorities": "Priority Actions",
+            "action_plan": "Action Plan",
+            "target_score": "Target Score",
+            "target_reached": "Target reached!",
+            "need_more": "Need more points",
+            "jobs_in": "Jobs in",
+            "no_jobs": "No jobs found. Try changing region or category.",
+            "matched": "Matched Skills",
+            "missing": "Missing Skills",
+            "apply": "Apply Now",
+            "match_score": "Match Score",
+            "cover_letter": "Cover Letter for",
+            "generate_pdf": "Generate Optimized Resume PDF",
+            "download_pdf": "Download Optimized Resume PDF",
+            "pdf_ready": "PDF is ready for download!",
+            "welcome": "Welcome!",
+            "welcome_text": "Upload your resume to get ATS analysis, improvement tips, job matches, and an optimized PDF.",
+            "total": "Total Jobs",
+            "tech_count": "Tech Jobs",
+            "eng_count": "Engineering",
+            "biz_count": "Business",
+            "file_error": "Could not read file. Try another.",
+            "detected": "Detected Fields",
+            "showing": "Showing jobs in",
+            "strong": "Strong Match",
+            "good": "Good Match",
+            "weak": "Weak Match",
+            "posted": "Posted",
+        }
+
+
+# =====================================================
+# FUNCTIONS
+# =====================================================
+def read_pdf(file):
+    try:
+        reader = PyPDF2.PdfReader(file)
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+    except:
+        return ""
+
+def read_docx(file):
+    try:
+        doc = docx.Document(file)
+        return "\n".join([p.text for p in doc.paragraphs])
+    except:
+        return ""
+
+def analyze_ats(text):
+    issues = []
+    score = 100
+    tl = text.lower()
+    wc = len(text.split())
+    if not re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text):
+        issues.append("Email is missing")
+        score -= 10
+    if not re.search(r"(\+?\d{1,3}[-.]?)?\d{3}[-.]?\d{3}[-.]?\d{4}", text):
+        issues.append("Phone number is missing")
+        score -= 5
+    if wc < 200:
+        issues.append("Resume is too short")
+        score -= 10
+    elif wc > 1000:
+        issues.append("Resume is too long")
+        score -= 5
+    sections = {"Experience": ["experience", "work", "employment"], "Education": ["education", "university", "degree"], "Skills": ["skills", "technologies"]}
+    present = []
+    missing = []
+    for sec, kws in sections.items():
+        if any(k in tl for k in kws):
+            present.append(sec)
+        else:
+            missing.append(sec)
+            score -= 8
+    if not re.search(r"\d+%|\d+\s*(years?|months?|projects?)", tl):
+        issues.append("Add measurable achievements")
+        score -= 5
+    return max(0, score), issues, wc, present, missing
+
+def extract_skills(text):
+    found = {}
+    tl = text.lower()
+    for cat, skills in SKILLS_DB.items():
+        matched = [s for s in skills if s in tl]
+        if matched:
+            found[cat] = matched
+    return found
+
+def match_jobs(text, region_code, category, min_match):
+    tl = text.lower()
+    skills_found = extract_skills(text)
+    detected = list(skills_found.keys()) or ["tech", "engineering", "business"]
+    cats = {"all": ["tech", "engineering", "business"], "auto": detected}.get(category, [category])
+    filtered = []
+    for job in JOBS:
+        if region_code != "Global" and job["region"] not in [region_code, "Global"]:
+            continue
+        if job["category"] not in cats:
+            continue
+        matched = [s for s in job["skills"] if s in tl]
+        missing = [s for s in job["skills"] if s not in tl]
+        score = int((len(matched) / len(job["skills"])) * 100) if job["skills"] else 0
+        filtered.append({"job": job, "score": score, "matched": matched, "missing": missing})
+    strong = [r for r in filtered if r["score"] >= min_match]
+    results = strong if strong else filtered
+    return sorted(results, key=lambda x: x["score"], reverse=True)
+
+def clean_pdf_text(text):
+    if not text:
+        return ""
+    for old, new in {"'": "-", "'": "'", "\u201c": '"', "\u201d": '"', "\t": " "}.items():
+        text = text.replace(old, new)
+    text = re.sub(r"[^\x00-\x7F]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+def generate_pdf_bytes(text):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=0.75*inch, leftMargin=0.75*inch, topMargin=0.75*inch, bottomMargin=0.75*inch)
+    styles = getSampleStyleSheet()
+    title_s = ParagraphStyle("T", parent=styles["Title"], fontSize=22, alignment=TA_CENTER, textColor="#0A66C2")
+    heading_s = ParagraphStyle("H", parent=styles["Heading2"], fontSize=13, textColor="#111827", spaceBefore=14)
+    body_s = ParagraphStyle("B", parent=styles["Normal"], fontSize=10.5, leading=14, textColor="#111827")
+    
+    email = re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
+    phone = re.search(r"(\+?\d{1,3}[-.]?)?\d{3}[-.]?\d{3}[-.]?\d{4}", text)
+    clean = clean_pdf_text(text)
+    lines = [l.strip() for l in clean.split(".") if len(l.strip()) > 15]
+    
+    all_skills = []
+    for skills in extract_skills(text).values():
+        all_skills.extend(skills)
+    
+    story = []
+    story.append(Paragraph("OPTIMIZED RESUME", title_s))
+    story.append(Paragraph(f"{email.group() if email else 'email@example.com'} | {phone.group() if phone else 'Phone'}", body_s))
+    story.append(Spacer(1, 0.15*inch))
+    
+    story.append(Paragraph("PROFESSIONAL SUMMARY", heading_s))
+    story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
+    story.append(Paragraph("Results-driven professional with proven ability to deliver high-quality results and drive business value.", body_s))
+    
+    story.append(Paragraph("CORE SKILLS", heading_s))
+    story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
+    story.append(Paragraph(", ".join([s.title() for s in all_skills[:25]]) if all_skills else "Add skills here.", body_s))
+    
+    story.append(Paragraph("EXPERIENCE / PROJECTS", heading_s))
+    story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
+    if lines:
+        for line in lines[:10]:
+            story.append(Paragraph("- " + line[:220], body_s))
+    else:
+        story.append(Paragraph("- Add experience here.", body_s))
+    
+    story.append(Paragraph("EDUCATION", heading_s))
+    story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
+    story.append(Paragraph("- Add education details here.", body_s))
+    
+    doc.build(story)
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf
+
+def cover_letter(job, matched):
+    skills = ", ".join(matched[:5]) or "my skills"
+    return f"""Dear Hiring Manager,
+
+I am writing to express my interest in the {job['title']} position at {job['company']}.
+
+With expertise in {skills}, I believe I can contribute effectively to your team.
+
+Thank you for considering my application.
+
+Best regards,
+[Your Name]
+"""
+
+def improvement_plan(score, issues, wc):
+    priorities = []
+    if score < 70:
+        priorities.append("HIGH: Resume needs critical ATS improvements.")
+    elif score < 85:
+        priorities.append("MEDIUM: Good resume, can be optimized further.")
+    else:
+        priorities.append("LOW: Resume is strong.")
+    for i in issues:
+        priorities.append(i)
+    actions = [
+        "Use standard headings: Experience, Education, Skills.",
+        "Add measurable achievements with numbers and percentages.",
+        "Tailor keywords for each job description.",
+        "Add LinkedIn, GitHub, or portfolio links.",
+        "Use bullet points and avoid tables or graphics.",
+        "Keep the resume concise and focused."
+    ]
+    return priorities, actions
+
+
+# =====================================================
+# MAIN
+# =====================================================
+def main():
+    st.set_page_config(page_title=APP_NAME, layout="wide")
+
+    # CSS
+    st.markdown("""<style>
+    .stApp { background-color: #0e1117; color: #ffffff; }
+    [data-testid="stSidebar"] { background-color: #262730; }
+    div[data-baseweb="select"] > div, input, textarea, [data-testid="stFileUploader"] section {
+        background-color: #111827 !important; color: #ffffff !important;
+        border: 1px solid #374151 !important; border-radius: 10px !important; }
+    .score-title { text-align: center; color: #1f77d0; font-size: 42px; font-weight: 800; }
+    .job-card { background: #111827; border: 1px solid #374151; border-radius: 14px; padding: 20px; margin: 16px 0; }
+    .job-card h3 { color: #ffffff; }
+    .match-high { color: #22c55e; font-weight: bold; font-size: 22px; }
+    .match-medium { color: #f59e0b; font-weight: bold; font-size: 22px; }
+    .match-low { color: #ef4444; font-weight: bold; font-size: 22px; }
+    .skill-pill { display: inline-block; padding: 5px 10px; margin: 3px; border-radius: 12px; background: #1e3a8a; color: white; font-size: 13px; }
+    .matched-pill { background: #065f46; }
+    .missing-pill { background: #7f1d1d; }
+    .suggestion-box { background: #111827; border-left: 5px solid #f59e0b; padding: 14px; margin: 10px 0; border-radius: 8px; color: #ffffff; }
+    .info-box { background: #082f49; border: 1px solid #0ea5e9; padding: 14px; border-radius: 10px; color: #ffffff; }
+    </style>""", unsafe_allow_html=True)
+
+    if "lang" not in st.session_state:
+        st.session_state.lang = "en"
+    if "pdf_bytes" not in st.session_state:
+        st.session_state.pdf_bytes = None
+
+    # Sidebar
+    with st.sidebar:
+        lang_pick = st.selectbox("🌐", ["English", "العربية"], index=0 if st.session_state.lang == "en" else 1)
+        st.session_state.lang = "ar" if lang_pick == "العربية" else "en"
+        lang = st.session_state.lang
+        L = get_text(lang)
+
+        st.markdown("---")
+        st.header("⚙️ " + L["settings"])
+        uploaded = st.file_uploader(L["upload"], type=["pdf", "docx"])
+        region_label = st.selectbox("🌍 " + L["region"], list(REGIONS.keys()))
+        region_code = REGIONS[region_label]
+        cats = {"all": L["all_cats"], "auto": L["auto"], "tech": L["tech"], "engineering": L["engineering"], "business": L["business"]}
+        category = st.selectbox("💼 " + L["category"], list(cats.keys()), format_func=lambda x: cats[x])
+        min_match = st.slider("📊 " + L["min_match"], 0, 100, 20)
+
+    st.title("📄 " + L["app_title"])
+    st.markdown("---")
+
+    if not uploaded:
+        st.subheader("👋 " + L["welcome"])
+        st.info(L["welcome_text"])
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric(L["total"], len(JOBS))
+        c2.metric(L["tech_count"], len([j for j in JOBS if j["category"] == "tech"]))
+        c3.metric(L["eng_count"], len([j for j in JOBS if j["category"] == "engineering"]))
+        c4.metric(L["biz_count"], len([j for j in JOBS if j["category"] == "business"]))
+        return
+
+    text = read_pdf(uploaded) if uploaded.type == "application/pdf" else read_docx(uploaded)
+    if not text:
+        st.error(L["file_error"])
+        return
+
+    ats_score, issues, wc, present, missing = analyze_ats(text)
+    skills_found = extract_skills(text)
+    jobs = match_jobs(text, region_code, category, min_match)
+    priorities, actions = improvement_plan(ats_score, issues, wc)
+    detected = list(skills_found.keys()) or ["general"]
+
+    st.markdown(f"<div class='info-box'>🎯 <b>{L['detected']}:</b> {', '.join(detected).upper()} | 🌍 <b>{L['showing']}:</b> {region_label}</div>", unsafe_allow_html=True)
+
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📊 " + L["tab_ats"],
+        "✏️ " + L["tab_improve"],
+        "🎯 " + L["tab_jobs"],
+        "📄 " + L["tab_pdf"]
+    ])
+
+    with tab1:
+        st.markdown(f"<div class='score-title'>{L['ats_score']}: {ats_score}%</div>", unsafe_allow_html=True)
+        st.progress(ats_score / 100)
+        c1, c2, c3 = st.columns(3)
+        c1.metric(L["words"], wc)
+        c2.metric(L["issues"], len(issues))
+        c3.metric(L["jobs_found"], len(jobs))
+        fig = go.Figure(go.Indicator(mode="gauge+number", value=ats_score, title={"text": "ATS"}, gauge={"axis": {"range": [0, 100]}, "bar": {"color": "#1f77d0"}}))
+        st.plotly_chart(fig, use_container_width=True)
+        st.subheader("🔑 " + L["skills_detected"])
+        if skills_found:
+            for cat, skills in skills_found.items():
+                pills = " ".join([f"<span class='skill-pill'>{s}</span>" for s in skills])
+                st.markdown(f"**{cats.get(cat, cat)}:** {pills}", unsafe_allow_html=True)
+        st.subheader("⚠️ " + L["issues_title"])
+        if issues:
+            for i in issues:
+                st.warning(i)
+        else:
+            st.success(L["no_issues"])
+
+    with tab2:
+        st.subheader("🎯 " + L["priorities"])
+        for p in priorities:
+            st.markdown(f"<div class='suggestion-box'>{p}</div>", unsafe_allow_html=True)
+        st.subheader("📋 " + L["action_plan"])
+        for i, a in enumerate(actions, 1):
+            st.write(f"**{i}.** {a}")
+        target = st.slider(L["target_score"], 0, 100, 90)
+        if ats_score >= target:
+            st.success(L["target_reached"])
+        else:
+            st.warning(f"{L['need_more']}: {target - ats_score}")
+
+    with tab3:
+        st.subheader("🎯 " + L["jobs_in"] + f" {region_label}")
+        if not jobs:
+            st.warning(L["no_jobs"])
+        else:
+            chart_data = [{"Job": r["job"]["title"], "Score": r["score"]} for r in jobs[:8]]
+            fig = px.bar(chart_data, x="Score", y="Job", orientation="h", color="Score", color_continuous_scale=["red", "yellow", "green"])
+            fig.update_layout(yaxis=dict(autorange="reversed"))
+            st.plotly_chart(fig, use_container_width=True)
+            for item in jobs:
+                job = item["job"]
+                score = item["score"]
+                cls = "match-high" if score >= 70 else "match-medium" if score >= 40 else "match-low"
+                badge = L["strong"] if score >= 70 else L["good"] if score >= 40 else L["weak"]
+                st.markdown(f"""<div class="job-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div><h3>{job['title']}</h3><p style="color:#d1d5db;">{job['company']} | {job['location']} | {job['salary']}</p>
+                <p style="color:#9ca3af;font-size:12px;">{L['posted']}: {job.get('date','')}</p></div>
+                <div style="text-align:center;"><span class="{cls}" style="font-size:28px;">{score}%</span><br><small style="color:#9ca3af;">{badge}</small></div>
+                </div></div>""", unsafe_allow_html=True)
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown(f"**{L['matched']}:**")
+                    if item["matched"]:
+                        st.markdown(" ".join([f"<span class='skill-pill matched-pill'>{s}</span>" for s in item["matched"]]), unsafe_allow_html=True)
+                    else:
+                        st.caption("-")
+                with c2:
+                    st.markdown(f"**{L['missing']}:**")
+                    if item["missing"]:
+                        st.markdown(" ".join([f"<span class='skill-pill missing-pill'>{s}</span>" for s in item["missing"]]), unsafe_allow_html=True)
+                    else:
+                        st.success("All matched!")
+                st.link_button("🚀 " + L["apply"], job["url"])
+                with st.expander("📝 " + L["cover_letter"] + " " + job["title"]):
+                    st.text_area("", value=cover_letter(job, item["matched"]), height=160, key=f"cv_{job['id']}")
+                st.markdown("---")
+
+    with tab4:
+        st.subheader("📄 " + L["generate_pdf"])
+        if st.button("🪄 " + L["generate_pdf"], use_container_width=True):
+            with st.spinner("Generating..."):
+                st.session_state.pdf_bytes = generate_pdf_bytes(text)
+        if st.session_state.pdf_bytes:
+            st.success(L["pdf_ready"])
+            st.download_button(
+                label="📥 " + L["download_pdf"],
+                data=st.session_state.pdf_bytes,
+                file_name="optimized_resume.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+
+if __name__ == "__main__":
+    main()
