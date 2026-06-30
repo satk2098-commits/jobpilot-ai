@@ -152,15 +152,7 @@ def get_text(lang):
 # =====================================================
 # JSEARCH API FUNCTION
 # =====================================================
-def fetch_real_jobs(query, location, num_pages=1):
-    """Fetch real jobs from JSearch API"""
-    url = "https://jsearch.p.rapidapi.com/search"
-    
-    # Get API key from Streamlit secrets
-    api_key = st.secrets.get("RAPIDAPI_KEY", "")
-    
-    if not api_key:
-        return None  # No API key configured
+fetch_real_jobsgured
     
     querystring = {
         "query": f"{query} in {location}",
