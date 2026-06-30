@@ -152,7 +152,15 @@ def get_text(lang):
 # =====================================================
 # JSEARCH API FUNCTION
 # =====================================================
-fetch_real_jobsgured
+def fetch_real_jobs(query, location, num_pages=1):
+    """Fetch real jobs from JSearch API"""
+    url = "https://jsearch.p.rapidapi.com/search"
+    
+    api_key = st.secrets.get("RAPIDAPI_KEY", "")
+    
+    if not api_key:
+        st.warning("API Key is not configured. Using default jobs.")
+        return None
     
     querystring = {
         "query": f"{query} in {location}",
@@ -167,29 +175,29 @@ fetch_real_jobsgured
     }
     
     try:
-        response = requests.get(url, headers=headers, params=querystring, timeout=10)
+        response = requests.get(url, headers=headers, params=querystring, timeout=15)
         response.raise_for_status()
         data = response.json()
         
         jobs = []
         if data.get("status") == "OK" and data.get("data"):
-            for job in data["data"][:20]:  # Limit to 20 jobs
+            for job in data["data"][:15]:  # Limit to 15 jobs
                 jobs.append({
-                    "id": job.get("job_id", ""),
-                    "title": job.get("job_title", "Unknown"),
+                    "id": job.get("job_id", f"api_{len(jobs)}"),
+                    "title": job.get("job_title", "Unknown Position"),
                     "company": job.get("employer_name", "Unknown Company"),
-                    "location": job.get("job_city", "") + ", " + job.get("job_country", ""),
-                    "salary": job.get("job_min_salary", "") and f"{job['job_min_salary']} - {job.get('job_max_salary', '')} {job.get('job_salary_currency', '')}" or "Not specified",
-                    "category": "tech" if any(t in job.get("job_title", "").lower() for t in ["developer", "engineer", "data", "it"]) else "general",
+                    "location": f"{job.get('job_city','')} {job.get('job_country','')}".strip(),
+                    "salary": job.get("job_salary_currency", "") + " " + str(job.get("job_min_salary", "N/A")),
+                    "category": "tech",
                     "region": location,
                     "skills": [],
-                    "url": job.get("job_apply_link", job.get("job_google_link", "")),
-                    "date": job.get("job_posted_at_datetime_utc", "")[:10] if job.get("job_posted_at_datetime_utc") else "",
-                    "description": job.get("job_description", "")
+                    "url": job.get("job_apply_link", job.get("job_google_link", "#")),
+                    "date": job.get("job_posted_at", "")[:10],
+                    "description": job.get("job_description", "")[:200]
                 })
         return jobs
     except Exception as e:
-        print(f"API Error: {e}")
+        st.error(f"API Error: {str(e)}")
         return None
 
 # =====================================================
