@@ -162,17 +162,61 @@ def fetch_real_jobs(query, location, num_pages=1):
         st.warning("API Key is not configured. Using default jobs.")
         return None
     
+    def fetch_real_jobs(query, location, num_pages=1):
+    """Fetch real jobs from JSearch API"""
+    url = "https://jsearch.p.rapidapi.com/search"
+    
+    api_key = st.secrets.get("RAPIDAPI_KEY", "")
+    
+    if not api_key:
+        st.warning("API Key is not configured. Using default jobs.")
+        return None
+    
+    # Combine query and location into a single search string
+    search_query = f"{query} {location}"
+    
     querystring = {
-        "query": f"{query} in {location}",
-        "location": location,
+        "query": search_query,
         "page": "1",
-        "num_pages": str(num_pages)
+        "num_pages": "1",
+        "date_posted": "all"
     }
     
     headers = {
         "X-RapidAPI-Key": api_key,
         "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     }
+    
+    try:
+        response = requests.get(url, headers=headers, params=querystring, timeout=15)
+        
+        # Show detailed error if status is not 200
+        if response.status_code != 200:
+            st.error(f"API returned status {response.status_code}: {response.text[:300]}")
+            return None
+            
+        data = response.json()
+        
+        jobs = []
+        if data.get("status") == "OK" and data.get("data"):
+            for job in data["data"][:15]:
+                jobs.append({
+                    "id": job.get("job_id", f"api_{len(jobs)}"),
+                    "title": job.get("job_title", "Unknown Position"),
+                    "company": job.get("employer_name", "Unknown Company"),
+                    "location": f"{job.get('job_city','')} {job.get('job_country','')}".strip(),
+                    "salary": "Check listing" if not job.get("job_min_salary") else f"{job.get('job_min_salary')} {job.get('job_salary_currency','')}",
+                    "category": "tech",
+                    "region": location,
+                    "skills": [],
+                    "url": job.get("job_apply_link", job.get("job_google_link", "#")),
+                    "date": (job.get("job_posted_at_datetime_utc") or "")[:10],
+                    "description": (job.get("job_description") or "")[:200]
+                })
+        return jobs
+    except Exception as e:
+        st.error(f"API Error: {str(e)}")
+        return None
     
     try:
         response = requests.get(url, headers=headers, params=querystring, timeout=15)
