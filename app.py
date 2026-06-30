@@ -5,6 +5,8 @@ import re
 import plotly.graph_objects as go
 import plotly.express as px
 from io import BytesIO
+import requests
+import os
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -13,36 +15,23 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 
 APP_NAME = "ATS Resume Optimizer Pro"
 
-REGIONS = {
-    "Global / Remote": "Global",
-    "Saudi Arabia": "Saudi Arabia",
-    "UAE": "UAE",
-    "Egypt": "Egypt",
-    "Qatar": "Qatar",
-    "Jordan": "Jordan"
-}
-
-JOBS = [
-    {"id": 1, "title": "Python Developer", "company": "Tech Solutions", "location": "Riyadh, KSA", "salary": "8000-12000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "git", "api"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-15"},
-    {"id": 2, "title": "Petroleum Engineer", "company": "Aramco", "location": "Dhahran, KSA", "salary": "15000-25000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["petroleum", "reservoir", "drilling", "simulation"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-14"},
-    {"id": 3, "title": "Data Analyst", "company": "STC", "location": "Riyadh, KSA", "salary": "9000-14000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "excel", "power bi"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-13"},
-    {"id": 4, "title": "Mechanical Engineer", "company": "ADNOC", "location": "Abu Dhabi, UAE", "salary": "18000-22000 AED", "category": "engineering", "region": "UAE", "skills": ["autocad", "solidworks", "piping"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-12"},
-    {"id": 5, "title": "Business Analyst", "company": "Consulting Group", "location": "Dubai, UAE", "salary": "12000-18000 AED", "category": "business", "region": "UAE", "skills": ["excel", "sql", "analysis", "communication"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-11"},
-    {"id": 6, "title": "Data Scientist", "company": "CairoTech", "location": "Cairo, Egypt", "salary": "12000-20000 EGP", "category": "tech", "region": "Egypt", "skills": ["python", "machine learning", "pandas", "numpy"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-10"},
-    {"id": 7, "title": "IT Support", "company": "Qatar Energy", "location": "Doha, Qatar", "salary": "9000-14000 QAR", "category": "tech", "region": "Qatar", "skills": ["linux", "network", "troubleshooting"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-09"},
-    {"id": 8, "title": "Project Manager", "company": "Amman Tech", "location": "Amman, Jordan", "salary": "900-1500 JOD", "category": "business", "region": "Jordan", "skills": ["project management", "leadership", "agile"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-08"},
-    {"id": 9, "title": "Frontend Developer", "company": "Global Apps", "location": "Remote", "salary": "3000-6000 USD", "category": "tech", "region": "Global", "skills": ["javascript", "react", "css", "git"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-07"},
-    {"id": 10, "title": "Process Engineer", "company": "SABIC", "location": "Jubail, KSA", "salary": "12000-18000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["hysys", "process simulation", "safety engineering"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-06"},
+# بيانات الوظائف الافتراضية (fallback)
+DEFAULT_JOBS = [
+    {"id": 1, "title": "Python Developer", "company": "Tech Solutions", "location": "Riyadh, KSA", "salary": "8000-12000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "git"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-15"},
+    {"id": 2, "title": "Petroleum Engineer", "company": "Aramco", "location": "Dhahran, KSA", "salary": "15000-25000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["petroleum", "reservoir", "drilling"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-14"},
+    {"id": 3, "title": "Data Analyst", "company": "STC", "location": "Riyadh, KSA", "salary": "9000-14000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "excel"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-13"},
+    {"id": 4, "title": "Mechanical Engineer", "company": "ADNOC", "location": "Abu Dhabi, UAE", "salary": "18000-22000 AED", "category": "engineering", "region": "UAE", "skills": ["autocad", "solidworks"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-12"},
+    {"id": 5, "title": "Business Analyst", "company": "Consulting Group", "location": "Dubai, UAE", "salary": "12000-18000 AED", "category": "business", "region": "UAE", "skills": ["excel", "sql", "analysis"], "url": "https://www.linkedin.com/jobs/", "date": "2025-01-11"},
 ]
 
 SKILLS_DB = {
-    "tech": ["python", "sql", "git", "api", "javascript", "react", "css", "html", "linux", "network", "power bi", "machine learning", "pandas", "numpy"],
-    "engineering": ["petroleum", "reservoir", "drilling", "simulation", "autocad", "solidworks", "piping", "hysys", "process simulation", "safety engineering"],
-    "business": ["excel", "analysis", "communication", "leadership", "project management", "agile"]
+    "tech": ["python", "sql", "git", "javascript", "react", "css", "html", "linux", "network", "power bi", "machine learning", "pandas", "numpy", "api", "django", "flask"],
+    "engineering": ["petroleum", "reservoir", "drilling", "simulation", "autocad", "solidworks", "piping", "hysys", "process", "safety", "mechanical", "electrical"],
+    "business": ["excel", "analysis", "communication", "leadership", "project management", "agile", "scrum", "crm", "sales", "marketing"]
 }
 
 # =====================================================
-# FULL TRANSLATION SYSTEM
+# TRANSLATION
 # =====================================================
 def get_text(lang):
     if lang == "ar":
@@ -98,6 +87,9 @@ def get_text(lang):
             "good": "تطابق جيد",
             "weak": "تطابق ضعيف",
             "posted": "تاريخ النشر",
+            "real_jobs": "وظائف حقيقية من الإنترنت",
+            "loading_jobs": "جاري تحميل الوظائف...",
+            "api_error": "تعذر تحميل الوظائف من API. عرض الوظائف الافتراضية.",
         }
     else:
         return {
@@ -152,11 +144,64 @@ def get_text(lang):
             "good": "Good Match",
             "weak": "Weak Match",
             "posted": "Posted",
+            "real_jobs": "Real Jobs from Internet",
+            "loading_jobs": "Loading jobs...",
+            "api_error": "Could not load jobs from API. Showing default jobs.",
         }
 
+# =====================================================
+# JSEARCH API FUNCTION
+# =====================================================
+def fetch_real_jobs(query, location, num_pages=1):
+    """Fetch real jobs from JSearch API"""
+    url = "https://jsearch.p.rapidapi.com/search"
+    
+    # Get API key from Streamlit secrets
+    api_key = st.secrets.get("RAPIDAPI_KEY", "")
+    
+    if not api_key:
+        return None  # No API key configured
+    
+    querystring = {
+        "query": f"{query} in {location}",
+        "location": location,
+        "page": "1",
+        "num_pages": str(num_pages)
+    }
+    
+    headers = {
+        "X-RapidAPI-Key": api_key,
+        "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, params=querystring, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        
+        jobs = []
+        if data.get("status") == "OK" and data.get("data"):
+            for job in data["data"][:20]:  # Limit to 20 jobs
+                jobs.append({
+                    "id": job.get("job_id", ""),
+                    "title": job.get("job_title", "Unknown"),
+                    "company": job.get("employer_name", "Unknown Company"),
+                    "location": job.get("job_city", "") + ", " + job.get("job_country", ""),
+                    "salary": job.get("job_min_salary", "") and f"{job['job_min_salary']} - {job.get('job_max_salary', '')} {job.get('job_salary_currency', '')}" or "Not specified",
+                    "category": "tech" if any(t in job.get("job_title", "").lower() for t in ["developer", "engineer", "data", "it"]) else "general",
+                    "region": location,
+                    "skills": [],
+                    "url": job.get("job_apply_link", job.get("job_google_link", "")),
+                    "date": job.get("job_posted_at_datetime_utc", "")[:10] if job.get("job_posted_at_datetime_utc") else "",
+                    "description": job.get("job_description", "")
+                })
+        return jobs
+    except Exception as e:
+        print(f"API Error: {e}")
+        return None
 
 # =====================================================
-# FUNCTIONS
+# FILE READER
 # =====================================================
 def read_pdf(file):
     try:
@@ -172,11 +217,15 @@ def read_docx(file):
     except:
         return ""
 
+# =====================================================
+# ATS ANALYSIS
+# =====================================================
 def analyze_ats(text):
     issues = []
     score = 100
     tl = text.lower()
     wc = len(text.split())
+    
     if not re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text):
         issues.append("Email is missing")
         score -= 10
@@ -189,6 +238,7 @@ def analyze_ats(text):
     elif wc > 1000:
         issues.append("Resume is too long")
         score -= 5
+    
     sections = {"Experience": ["experience", "work", "employment"], "Education": ["education", "university", "degree"], "Skills": ["skills", "technologies"]}
     present = []
     missing = []
@@ -198,9 +248,11 @@ def analyze_ats(text):
         else:
             missing.append(sec)
             score -= 8
+    
     if not re.search(r"\d+%|\d+\s*(years?|months?|projects?)", tl):
         issues.append("Add measurable achievements")
         score -= 5
+    
     return max(0, score), issues, wc, present, missing
 
 def extract_skills(text):
@@ -212,21 +264,34 @@ def extract_skills(text):
             found[cat] = matched
     return found
 
-def match_jobs(text, region_code, category, min_match):
+def match_jobs(text, jobs_list, category, min_match):
     tl = text.lower()
     skills_found = extract_skills(text)
     detected = list(skills_found.keys()) or ["tech", "engineering", "business"]
     cats = {"all": ["tech", "engineering", "business"], "auto": detected}.get(category, [category])
+    
     filtered = []
-    for job in JOBS:
-        if region_code != "Global" and job["region"] not in [region_code, "Global"]:
+    for job in jobs_list:
+        if job.get("category", "general") not in cats:
             continue
-        if job["category"] not in cats:
-            continue
-        matched = [s for s in job["skills"] if s in tl]
-        missing = [s for s in job["skills"] if s not in tl]
-        score = int((len(matched) / len(job["skills"])) * 100) if job["skills"] else 0
-        filtered.append({"job": job, "score": score, "matched": matched, "missing": missing})
+        
+        job_skills = job.get("skills", [])
+        job_desc = (job.get("description", "") + " " + job.get("title", "")).lower()
+        
+        matched = []
+        missing = []
+        for skill in SKILLS_DB.get(job.get("category", "tech"), []):
+            if skill in tl or skill in job_desc:
+                matched.append(skill)
+            elif skill in job_skills:
+                missing.append(skill)
+        
+        # Calculate score based on matched skills
+        all_relevant = SKILLS_DB.get(job.get("category", "tech"), [])
+        score = int((len(matched) / len(all_relevant)) * 100) if all_relevant else 50
+        
+        filtered.append({"job": job, "score": score, "matched": matched[:10], "missing": missing[:10]})
+    
     strong = [r for r in filtered if r["score"] >= min_match]
     results = strong if strong else filtered
     return sorted(results, key=lambda x: x["score"], reverse=True)
@@ -260,15 +325,12 @@ def generate_pdf_bytes(text):
     story.append(Paragraph("OPTIMIZED RESUME", title_s))
     story.append(Paragraph(f"{email.group() if email else 'email@example.com'} | {phone.group() if phone else 'Phone'}", body_s))
     story.append(Spacer(1, 0.15*inch))
-    
     story.append(Paragraph("PROFESSIONAL SUMMARY", heading_s))
     story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
-    story.append(Paragraph("Results-driven professional with proven ability to deliver high-quality results and drive business value.", body_s))
-    
+    story.append(Paragraph("Results-driven professional with proven ability to deliver high-quality results.", body_s))
     story.append(Paragraph("CORE SKILLS", heading_s))
     story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
     story.append(Paragraph(", ".join([s.title() for s in all_skills[:25]]) if all_skills else "Add skills here.", body_s))
-    
     story.append(Paragraph("EXPERIENCE / PROJECTS", heading_s))
     story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
     if lines:
@@ -276,7 +338,6 @@ def generate_pdf_bytes(text):
             story.append(Paragraph("- " + line[:220], body_s))
     else:
         story.append(Paragraph("- Add experience here.", body_s))
-    
     story.append(Paragraph("EDUCATION", heading_s))
     story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
     story.append(Paragraph("- Add education details here.", body_s))
@@ -320,9 +381,8 @@ def improvement_plan(score, issues, wc):
     ]
     return priorities, actions
 
-
 # =====================================================
-# MAIN
+# MAIN APP
 # =====================================================
 def main():
     st.set_page_config(page_title=APP_NAME, layout="wide")
@@ -345,12 +405,15 @@ def main():
     .missing-pill { background: #7f1d1d; }
     .suggestion-box { background: #111827; border-left: 5px solid #f59e0b; padding: 14px; margin: 10px 0; border-radius: 8px; color: #ffffff; }
     .info-box { background: #082f49; border: 1px solid #0ea5e9; padding: 14px; border-radius: 10px; color: #ffffff; }
+    .api-badge { background: linear-gradient(90deg, #00C853, #64DD17); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
     </style>""", unsafe_allow_html=True)
 
     if "lang" not in st.session_state:
         st.session_state.lang = "en"
     if "pdf_bytes" not in st.session_state:
         st.session_state.pdf_bytes = None
+    if "real_jobs" not in st.session_state:
+        st.session_state.real_jobs = []
 
     # Sidebar
     with st.sidebar:
@@ -362,11 +425,14 @@ def main():
         st.markdown("---")
         st.header("⚙️ " + L["settings"])
         uploaded = st.file_uploader(L["upload"], type=["pdf", "docx"])
-        region_label = st.selectbox("🌍 " + L["region"], list(REGIONS.keys()))
-        region_code = REGIONS[region_label]
+        region_label = st.selectbox("🌍 " + L["region"], list({"Global / Remote": "Global", "Saudi Arabia": "Saudi Arabia", "UAE": "UAE", "Egypt": "Egypt", "Qatar": "Qatar", "Jordan": "Jordan"}.keys()))
+        region_code = {"Global / Remote": "Global", "Saudi Arabia": "Saudi Arabia", "UAE": "UAE", "Egypt": "Egypt", "Qatar": "Qatar", "Jordan": "Jordan"}[region_label]
         cats = {"all": L["all_cats"], "auto": L["auto"], "tech": L["tech"], "engineering": L["engineering"], "business": L["business"]}
         category = st.selectbox("💼 " + L["category"], list(cats.keys()), format_func=lambda x: cats[x])
         min_match = st.slider("📊 " + L["min_match"], 0, 100, 20)
+        
+        # API Toggle
+        use_api = st.checkbox("🌐 " + L["real_jobs"], value=True)
 
     st.title("📄 " + L["app_title"])
     st.markdown("---")
@@ -375,10 +441,11 @@ def main():
         st.subheader("👋 " + L["welcome"])
         st.info(L["welcome_text"])
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric(L["total"], len(JOBS))
-        c2.metric(L["tech_count"], len([j for j in JOBS if j["category"] == "tech"]))
-        c3.metric(L["eng_count"], len([j for j in JOBS if j["category"] == "engineering"]))
-        c4.metric(L["biz_count"], len([j for j in JOBS if j["category"] == "business"]))
+        total_jobs = len(st.session_state.real_jobs) if st.session_state.real_jobs else len(DEFAULT_JOBS)
+        c1.metric(L["total"], total_jobs)
+        c2.metric(L["tech_count"], len([j for j in (st.session_state.real_jobs or DEFAULT_JOBS) if j.get("category") == "tech"]))
+        c3.metric(L["eng_count"], len([j for j in (st.session_state.real_jobs or DEFAULT_JOBS) if j.get("category") == "engineering"]))
+        c4.metric(L["biz_count"], len([j for j in (st.session_state.real_jobs or DEFAULT_JOBS) if j.get("category") == "business"]))
         return
 
     text = read_pdf(uploaded) if uploaded.type == "application/pdf" else read_docx(uploaded)
@@ -386,13 +453,26 @@ def main():
         st.error(L["file_error"])
         return
 
+    # Fetch real jobs if enabled
+    jobs_list = DEFAULT_JOBS
+    if use_api:
+        with st.spinner(L["loading_jobs"]):
+            api_jobs = fetch_real_jobs("developer engineer analyst", region_code, 1)
+            if api_jobs:
+                jobs_list = api_jobs
+                st.session_state.real_jobs = api_jobs
+                st.success(f"✅ Loaded {len(api_jobs)} real jobs from API!")
+            else:
+                st.warning(L["api_error"])
+                jobs_list = DEFAULT_JOBS
+
     ats_score, issues, wc, present, missing = analyze_ats(text)
     skills_found = extract_skills(text)
-    jobs = match_jobs(text, region_code, category, min_match)
+    jobs = match_jobs(text, jobs_list, category, min_match)
     priorities, actions = improvement_plan(ats_score, issues, wc)
     detected = list(skills_found.keys()) or ["general"]
 
-    st.markdown(f"<div class='info-box'>🎯 <b>{L['detected']}:</b> {', '.join(detected).upper()} | 🌍 <b>{L['showing']}:</b> {region_label}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='info-box'>🎯 <b>{L['detected']}:</b> {', '.join(detected).upper()} | 🌍 <b>{L['showing']}:</b> {region_label} {'🌐 API' if use_api and st.session_state.real_jobs else ''}</div>", unsafe_allow_html=True)
 
     tab1, tab2, tab3, tab4 = st.tabs([
         "📊 " + L["tab_ats"],
@@ -437,6 +517,9 @@ def main():
 
     with tab3:
         st.subheader("🎯 " + L["jobs_in"] + f" {region_label}")
+        if use_api and st.session_state.real_jobs:
+            st.markdown('<span class="api-badge">🌐 LIVE API JOBS</span>', unsafe_allow_html=True)
+        
         if not jobs:
             st.warning(L["no_jobs"])
         else:
@@ -444,6 +527,7 @@ def main():
             fig = px.bar(chart_data, x="Score", y="Job", orientation="h", color="Score", color_continuous_scale=["red", "yellow", "green"])
             fig.update_layout(yaxis=dict(autorange="reversed"))
             st.plotly_chart(fig, use_container_width=True)
+            
             for item in jobs:
                 job = item["job"]
                 score = item["score"]
@@ -459,18 +543,19 @@ def main():
                 with c1:
                     st.markdown(f"**{L['matched']}:**")
                     if item["matched"]:
-                        st.markdown(" ".join([f"<span class='skill-pill matched-pill'>{s}</span>" for s in item["matched"]]), unsafe_allow_html=True)
+                        st.markdown(" ".join([f"<span class='matched-pill'>{s}</span>" for s in item["matched"]]), unsafe_allow_html=True)
                     else:
                         st.caption("-")
                 with c2:
                     st.markdown(f"**{L['missing']}:**")
                     if item["missing"]:
-                        st.markdown(" ".join([f"<span class='skill-pill missing-pill'>{s}</span>" for s in item["missing"]]), unsafe_allow_html=True)
+                        st.markdown(" ".join([f"<span class='missing-pill'>{s}</span>" for s in item["missing"]]), unsafe_allow_html=True)
                     else:
                         st.success("All matched!")
-                st.link_button("🚀 " + L["apply"], job["url"])
+                if job.get("url"):
+                    st.link_button("🚀 " + L["apply"], job["url"])
                 with st.expander("📝 " + L["cover_letter"] + " " + job["title"]):
-                    st.text_area("", value=cover_letter(job, item["matched"]), height=160, key=f"cv_{job['id']}")
+                    st.text_area("", value=cover_letter(job, item["matched"]), height=160, key=f"cv_{job.get('id','')}")
                 st.markdown("---")
 
     with tab4:
