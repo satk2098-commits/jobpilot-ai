@@ -3,3 +3,6 @@ PyPDF2
 python-docx
 plotly
 reportlab
+pandas
+gspread
+google-auth
