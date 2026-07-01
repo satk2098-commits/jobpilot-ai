@@ -299,7 +299,7 @@ def main():
 
         st.markdown("---")
         st.header("⚙️ " + L["settings"])
-        uploaded = st.file_uploader(L["upload"], type=["pdf", "docx"])
+        uploaded = st.file_uploader(L["upload"], type=["pdf", "docx"], help="Max file size: 10MB")
         regions_map = {"Global / Remote": "Global", "Saudi Arabia": "Saudi Arabia", "UAE": "UAE", "Egypt": "Egypt", "Qatar": "Qatar", "Jordan": "Jordan"}
         region_label = st.selectbox("🌍 " + L["region"], list(regions_map.keys()))
         region_code = regions_map[region_label]
