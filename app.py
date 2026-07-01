@@ -13,49 +13,30 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 
 APP_NAME = "ATS Resume Optimizer Pro"
 
-# قاعدة بيانات وظائف موسعة (50+ وظيفة حقيقية)
+# تم تحديث الروابط (روابط بحث حقيقية على LinkedIn)
 JOBS = [
-    # السعودية - تقنية
-    {"id": 1, "title": "Python Developer", "company": "Tech Solutions Co.", "location": "Riyadh, Saudi Arabia", "salary": "8,000 - 12,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "git", "api"], "url": "https://www.linkedin.com/jobs/search/?keywords=Python%20Developer&location=Saudi%20Arabia", "date": "2025-01-15"},
-    {"id": 2, "title": "Full Stack Developer", "company": "STC", "location": "Riyadh, Saudi Arabia", "salary": "10,000 - 15,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["javascript", "react", "node.js", "sql"], "url": "https://www.linkedin.com/jobs/search/?keywords=Full%20Stack%20Developer&location=Saudi%20Arabia", "date": "2025-01-14"},
+    {"id": 1, "title": "Python Developer", "company": "Tech Solutions", "location": "Riyadh, Saudi Arabia", "salary": "8,000 - 12,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "git"], "url": "https://www.linkedin.com/jobs/search/?keywords=Python%20Developer&location=Saudi%20Arabia", "date": "2025-01-15"},
+    {"id": 2, "title": "Full Stack Developer", "company": "STC", "location": "Riyadh, Saudi Arabia", "salary": "10,000 - 15,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["javascript", "react", "sql"], "url": "https://www.linkedin.com/jobs/search/?keywords=Full%20Stack&location=Saudi%20Arabia", "date": "2025-01-14"},
     {"id": 3, "title": "Data Analyst", "company": "Al Rajhi Bank", "location": "Riyadh, Saudi Arabia", "salary": "9,000 - 14,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["python", "sql", "excel", "power bi"], "url": "https://www.linkedin.com/jobs/search/?keywords=Data%20Analyst&location=Saudi%20Arabia", "date": "2025-01-13"},
-    {"id": 4, "title": "DevOps Engineer", "company": "Saudi Aramco", "location": "Dhahran, Saudi Arabia", "salary": "15,000 - 22,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["aws", "docker", "kubernetes", "linux"], "url": "https://www.linkedin.com/jobs/search/?keywords=DevOps%20Engineer&location=Saudi%20Arabia", "date": "2025-01-12"},
-    {"id": 5, "title": "Cybersecurity Analyst", "company": "SABIC", "location": "Jubail, Saudi Arabia", "salary": "12,000 - 18,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["network security", "linux", "python"], "url": "https://www.linkedin.com/jobs/search/?keywords=Cybersecurity&location=Saudi%20Arabia", "date": "2025-01-11"},
-    
-    # السعودية - هندسة
-    {"id": 6, "title": "Petroleum Engineer", "company": "Saudi Aramco", "location": "Dhahran, Saudi Arabia", "salary": "18,000 - 30,000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["petroleum", "reservoir", "drilling", "simulation"], "url": "https://www.linkedin.com/jobs/search/?keywords=Petroleum%20Engineer&location=Saudi%20Arabia", "date": "2025-01-10"},
-    {"id": 7, "title": "Mechanical Engineer", "company": "SABIC", "location": "Riyadh, Saudi Arabia", "salary": "12,000 - 18,000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["autocad", "solidworks", "piping"], "url": "https://www.linkedin.com/jobs/search/?keywords=Mechanical%20Engineer&location=Saudi%20Arabia", "date": "2025-01-09"},
-    {"id": 8, "title": "Process Engineer", "company": "SABIC", "location": "Jubail, Saudi Arabia", "salary": "14,000 - 20,000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["hysys", "process simulation", "safety"], "url": "https://www.linkedin.com/jobs/search/?keywords=Process%20Engineer&location=Saudi%20Arabia", "date": "2025-01-08"},
-    {"id": 9, "title": "Electrical Engineer", "company": "SEC", "location": "Riyadh, Saudi Arabia", "salary": "10,000 - 16,000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["electrical", "autocad", "power systems"], "url": "https://www.linkedin.com/jobs/search/?keywords=Electrical%20Engineer&location=Saudi%20Arabia", "date": "2025-01-07"},
-    
-    # السعودية - أعمال
-    {"id": 10, "title": "Business Analyst", "company": "Alinma Bank", "location": "Riyadh, Saudi Arabia", "salary": "10,000 - 15,000 SAR", "category": "business", "region": "Saudi Arabia", "skills": ["excel", "sql", "analysis", "communication"], "url": "https://www.linkedin.com/jobs/search/?keywords=Business%20Analyst&location=Saudi%20Arabia", "date": "2025-01-06"},
-    {"id": 11, "title": "Project Manager", "company": "NEOM", "location": "Tabuk, Saudi Arabia", "salary": "20,000 - 35,000 SAR", "category": "business", "region": "Saudi Arabia", "skills": ["project management", "leadership", "agile"], "url": "https://www.linkedin.com/jobs/search/?keywords=Project%20Manager&location=Saudi%20Arabia", "date": "2025-01-05"},
-    {"id": 12, "title": "HR Specialist", "company": "MAADEN", "location": "Riyadh, Saudi Arabia", "salary": "8,000 - 12,000 SAR", "category": "business", "region": "Saudi Arabia", "skills": ["hr", "communication", "excel"], "url": "https://www.linkedin.com/jobs/search/?keywords=HR%20Specialist&location=Saudi%20Arabia", "date": "2025-01-04"},
-    
-    # الإمارات
-    {"id": 13, "title": "Software Engineer", "company": "Emirates NBD", "location": "Dubai, UAE", "salary": "15,000 - 25,000 AED", "category": "tech", "region": "UAE", "skills": ["java", "python", "sql"], "url": "https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer&location=Dubai", "date": "2025-01-03"},
-    {"id": 14, "title": "Data Scientist", "company": "Careem", "location": "Dubai, UAE", "salary": "20,000 - 35,000 AED", "category": "tech", "region": "UAE", "skills": ["python", "machine learning", "tensorflow"], "url": "https://www.linkedin.com/jobs/search/?keywords=Data%20Scientist&location=Dubai", "date": "2025-01-02"},
-    {"id": 15, "title": "Civil Engineer", "company": "Emaar", "location": "Dubai, UAE", "salary": "12,000 - 20,000 AED", "category": "engineering", "region": "UAE", "skills": ["autocad", "civil engineering", "project management"], "url": "https://www.linkedin.com/jobs/search/?keywords=Civil%20Engineer&location=Dubai", "date": "2025-01-01"},
-    
-    # مصر
-    {"id": 16, "title": "Software Developer", "company": "Vodafone Egypt", "location": "Cairo, Egypt", "salary": "12,000 - 20,000 EGP", "category": "tech", "region": "Egypt", "skills": ["python", "javascript", "sql"], "url": "https://www.linkedin.com/jobs/search/?keywords=Software%20Developer&location=Egypt", "date": "2025-01-15"},
-    {"id": 17, "title": "Business Analyst", "company": "CIB Bank", "location": "Cairo, Egypt", "salary": "10,000 - 18,000 EGP", "category": "business", "region": "Egypt", "skills": ["excel", "sql", "analysis"], "url": "https://www.linkedin.com/jobs/search/?keywords=Business%20Analyst&location=Egypt", "date": "2025-01-14"},
-    
-    # قطر
-    {"id": 18, "title": "IT Support Specialist", "company": "Qatar Energy", "location": "Doha, Qatar", "salary": "10,000 - 16,000 QAR", "category": "tech", "region": "Qatar", "skills": ["linux", "network", "troubleshooting"], "url": "https://www.linkedin.com/jobs/search/?keywords=IT%20Support&location=Qatar", "date": "2025-01-13"},
-    
-    # الأردن
-    {"id": 19, "title": "Full Stack Developer", "company": "Rubicon", "location": "Amman, Jordan", "salary": "1,000 - 2,000 JOD", "category": "tech", "region": "Jordan", "skills": ["react", "node.js", "mongodb"], "url": "https://www.linkedin.com/jobs/search/?keywords=Full%20Stack&location=Jordan", "date": "2025-01-12"},
-    
-    # Remote / Global
-    {"id": 20, "title": "Remote Python Developer", "company": "GitLab", "location": "Remote", "salary": "$4,000 - $8,000 USD", "category": "tech", "region": "Global", "skills": ["python", "git", "api"], "url": "https://www.linkedin.com/jobs/search/?keywords=Remote%20Python&location=Remote", "date": "2025-01-11"},
+    {"id": 4, "title": "DevOps Engineer", "company": "Aramco", "location": "Dhahran, Saudi Arabia", "salary": "15,000 - 22,000 SAR", "category": "tech", "region": "Saudi Arabia", "skills": ["aws", "docker", "linux"], "url": "https://www.linkedin.com/jobs/search/?keywords=DevOps&location=Saudi%20Arabia", "date": "2025-01-12"},
+    {"id": 5, "title": "Petroleum Engineer", "company": "Aramco", "location": "Dhahran, Saudi Arabia", "salary": "18,000 - 30,000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["petroleum", "reservoir", "drilling"], "url": "https://www.linkedin.com/jobs/search/?keywords=Petroleum%20Engineer&location=Saudi%20Arabia", "date": "2025-01-11"},
+    {"id": 6, "title": "Mechanical Engineer", "company": "SABIC", "location": "Jubail, Saudi Arabia", "salary": "12,000 - 18,000 SAR", "category": "engineering", "region": "Saudi Arabia", "skills": ["autocad", "solidworks"], "url": "https://www.linkedin.com/jobs/search/?keywords=Mechanical%20Engineer&location=Saudi%20Arabia", "date": "2025-01-10"},
+    {"id": 7, "title": "Business Analyst", "company": "Alinma Bank", "location": "Riyadh, Saudi Arabia", "salary": "10,000 - 15,000 SAR", "category": "business", "region": "Saudi Arabia", "skills": ["excel", "sql", "analysis"], "url": "https://www.linkedin.com/jobs/search/?keywords=Business%20Analyst&location=Saudi%20Arabia", "date": "2025-01-09"},
+    {"id": 8, "title": "Project Manager", "company": "NEOM", "location": "Tabuk, Saudi Arabia", "salary": "20,000 - 35,000 SAR", "category": "business", "region": "Saudi Arabia", "skills": ["project management", "leadership"], "url": "https://www.linkedin.com/jobs/search/?keywords=Project%20Manager&location=Saudi%20Arabia", "date": "2025-01-08"},
+    {"id": 9, "title": "Software Engineer", "company": "Emirates NBD", "location": "Dubai, UAE", "salary": "15,000 - 25,000 AED", "category": "tech", "region": "UAE", "skills": ["java", "python", "sql"], "url": "https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer&location=Dubai", "date": "2025-01-07"},
+    {"id": 10, "title": "Data Scientist", "company": "Careem", "location": "Dubai, UAE", "salary": "20,000 - 35,000 AED", "category": "tech", "region": "UAE", "skills": ["python", "machine learning", "tensorflow"], "url": "https://www.linkedin.com/jobs/search/?keywords=Data%20Scientist&location=Dubai", "date": "2025-01-06"},
+    {"id": 11, "title": "Civil Engineer", "company": "Emaar", "location": "Dubai, UAE", "salary": "12,000 - 20,000 AED", "category": "engineering", "region": "UAE", "skills": ["autocad", "civil"], "url": "https://www.linkedin.com/jobs/search/?keywords=Civil%20Engineer&location=Dubai", "date": "2025-01-05"},
+    {"id": 12, "title": "Software Developer", "company": "Vodafone Egypt", "location": "Cairo, Egypt", "salary": "12,000 - 20,000 EGP", "category": "tech", "region": "Egypt", "skills": ["python", "javascript", "sql"], "url": "https://www.linkedin.com/jobs/search/?keywords=Software%20Developer&location=Egypt", "date": "2025-01-04"},
+    {"id": 13, "title": "Business Analyst", "company": "CIB Bank", "location": "Cairo, Egypt", "salary": "10,000 - 18,000 EGP", "category": "business", "region": "Egypt", "skills": ["excel", "sql", "analysis"], "url": "https://www.linkedin.com/jobs/search/?keywords=Business%20Analyst&location=Egypt", "date": "2025-01-03"},
+    {"id": 14, "title": "IT Support", "company": "Qatar Energy", "location": "Doha, Qatar", "salary": "10,000 - 16,000 QAR", "category": "tech", "region": "Qatar", "skills": ["linux", "network"], "url": "https://www.linkedin.com/jobs/search/?keywords=IT%20Support&location=Qatar", "date": "2025-01-02"},
+    {"id": 15, "title": "Full Stack Developer", "company": "Rubicon", "location": "Amman, Jordan", "salary": "1,000 - 2,000 JOD", "category": "tech", "region": "Jordan", "skills": ["react", "node.js", "mongodb"], "url": "https://www.linkedin.com/jobs/search/?keywords=Full%20Stack&location=Jordan", "date": "2025-01-01"},
+    {"id": 16, "title": "Remote Python Developer", "company": "GitLab", "location": "Remote", "salary": "$4,000 - $8,000", "category": "tech", "region": "Global", "skills": ["python", "git"], "url": "https://www.linkedin.com/jobs/search/?keywords=Remote%20Python&location=Remote", "date": "2024-12-30"},
 ]
 
 SKILLS_DB = {
-    "tech": ["python", "sql", "git", "javascript", "react", "css", "html", "linux", "network", "power bi", "machine learning", "pandas", "numpy", "api", "django", "flask", "aws", "docker", "java", "node.js"],
-    "engineering": ["petroleum", "reservoir", "drilling", "simulation", "autocad", "solidworks", "piping", "hysys", "process", "safety", "mechanical", "electrical", "civil"],
-    "business": ["excel", "analysis", "communication", "leadership", "project management", "agile", "scrum", "crm", "sales", "marketing", "hr"]
+    "tech": ["python", "sql", "git", "javascript", "react", "css", "html", "linux", "power bi", "machine learning", "aws", "docker", "java", "node.js"],
+    "engineering": ["petroleum", "reservoir", "drilling", "autocad", "solidworks", "piping", "civil", "hysys"],
+    "business": ["excel", "analysis", "communication", "leadership", "project management", "agile", "crm", "sales"]
 }
 
 def get_text(lang):
@@ -63,16 +44,16 @@ def get_text(lang):
         return {
             "app_title": "محسن السيرة الذاتية ومطابقة الوظائف", "settings": "الإعدادات", "upload": "رفع السيرة الذاتية",
             "region": "المنطقة المستهدفة", "category": "مجال الوظائف", "all_cats": "كل المجالات", "auto": "اكتشاف تلقائي",
-            "tech": "تقنية المعلومات", "engineering": "الهندسة والبترول", "business": "إدارة الأعمال",
+            "tech": "تقنية المعلومات", "engineering": "الهندسة", "business": "إدارة الأعمال",
             "min_match": "الحد الأدنى للتطابق %", "language": "اللغة", "tab_ats": "تحليل ATS", "tab_improve": "تحسين السيرة",
             "tab_jobs": "الوظائف المناسبة", "tab_pdf": "إنشاء السيرة PDF", "ats_score": "درجة التوافق مع ATS",
             "words": "عدد الكلمات", "issues": "المشاكل", "jobs_found": "الوظائف المتاحة", "skills_detected": "المهارات المكتشفة",
             "issues_title": "مشاكل تحتاج إصلاح", "no_issues": "لا توجد مشاكل كبيرة", "priorities": "إجراءات ذات أولوية",
             "action_plan": "خطة العمل", "target_score": "الدرجة المستهدفة", "target_reached": "تم بلوغ الهدف!",
-            "need_more": "تحتاج نقاط إضافية", "jobs_in": "وظائف في", "no_jobs": "لا توجد وظائف. جرب تغيير المنطقة أو المجال.",
+            "need_more": "تحتاج نقاط إضافية", "jobs_in": "وظائف في", "no_jobs": "لا توجد وظائف.",
             "matched": "مهارات متطابقة", "missing": "مهارات ناقصة", "apply": "تقدم الآن", "match_score": "نسبة التطابق",
             "cover_letter": "خطاب تغطية لـ", "generate_pdf": "إنشاء سيرة ذاتية محسنة PDF", "download_pdf": "تحميل السيرة الذاتية المحسنة PDF",
-            "pdf_ready": "ملف PDF جاهز للتحميل", "welcome": "مرحباً بك!", "welcome_text": "ارفع سيرتك الذاتية للحصول على تحليل ATS ونصائح تحسين ووظائف مناسبة وسيرة محسنة PDF.",
+            "pdf_ready": "ملف PDF جاهز للتحميل", "welcome": "مرحباً بك!", "welcome_text": "ارفع سيرتك الذاتية للحصول على تحليل ATS ووظائف مناسبة وسيرة محسنة PDF.",
             "total": "إجمالي الوظائف", "tech_count": "وظائف تقنية", "eng_count": "وظائف هندسية", "biz_count": "وظائف أعمال",
             "file_error": "تعذر قراءة الملف. جرب ملف آخر.", "detected": "المجالات المكتشفة", "showing": "عرض وظائف في",
             "strong": "تطابق قوي", "good": "تطابق جيد", "weak": "تطابق ضعيف", "posted": "تاريخ النشر",
@@ -87,10 +68,10 @@ def get_text(lang):
             "issues": "Issues", "jobs_found": "Jobs Found", "skills_detected": "Skills Detected", "issues_title": "Issues to Fix",
             "no_issues": "No major issues found!", "priorities": "Priority Actions", "action_plan": "Action Plan",
             "target_score": "Target Score", "target_reached": "Target reached!", "need_more": "Need more points",
-            "jobs_in": "Jobs in", "no_jobs": "No jobs found. Try changing region or category.", "matched": "Matched Skills",
+            "jobs_in": "Jobs in", "no_jobs": "No jobs found.", "matched": "Matched Skills",
             "missing": "Missing Skills", "apply": "Apply Now", "match_score": "Match Score", "cover_letter": "Cover Letter for",
             "generate_pdf": "Generate Optimized Resume PDF", "download_pdf": "Download Optimized Resume PDF",
-            "pdf_ready": "PDF is ready for download!", "welcome": "Welcome!", "welcome_text": "Upload your resume to get ATS analysis, improvement tips, job matches, and an optimized PDF.",
+            "pdf_ready": "PDF is ready for download!", "welcome": "Welcome!", "welcome_text": "Upload your resume to get ATS analysis, job matches, and an optimized PDF.",
             "total": "Total Jobs", "tech_count": "Tech Jobs", "eng_count": "Engineering", "biz_count": "Business",
             "file_error": "Could not read file. Try another.", "detected": "Detected Fields", "showing": "Showing jobs in",
             "strong": "Strong Match", "good": "Good Match", "weak": "Weak Match", "posted": "Posted",
@@ -115,33 +96,21 @@ def analyze_ats(text):
     score = 100
     tl = text.lower()
     wc = len(text.split())
-
     if not re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text):
         issues.append("Email is missing")
         score -= 10
     if not re.search(r"(\+?\d{1,3}[-.]?)?\d{3}[-.]?\d{3}[-.]?\d{4}", text):
         issues.append("Phone number is missing")
         score -= 5
-    if wc < 200:
-        issues.append("Resume is too short")
-        score -= 10
-    elif wc > 1000:
-        issues.append("Resume is too long")
-        score -= 5
-
-    sections = {"Experience": ["experience", "work", "employment"], "Education": ["education", "university", "degree"], "Skills": ["skills", "technologies"]}
+    if wc < 200: issues.append("Resume is too short"); score -= 10
+    elif wc > 1000: issues.append("Resume is too long"); score -= 5
+    sections = {"Experience": ["experience", "work"], "Education": ["education", "university"], "Skills": ["skills"]}
     present, missing = [], []
     for sec, kws in sections.items():
-        if any(k in tl for k in kws):
-            present.append(sec)
-        else:
-            missing.append(sec)
-            score -= 8
-
-    if not re.search(r"\d+%|\d+\s*(years?|months?|projects?)", tl):
-        issues.append("Add measurable achievements")
-        score -= 5
-
+        if any(k in tl for k in kws): present.append(sec)
+        else: missing.append(sec); score -= 8
+    if not re.search(r"\d+%|\d+\s*(years?|projects?)", tl):
+        issues.append("Add measurable achievements"); score -= 5
     return max(0, score), issues, wc, present, missing
 
 def extract_skills(text):
@@ -149,8 +118,7 @@ def extract_skills(text):
     tl = text.lower()
     for cat, skills in SKILLS_DB.items():
         matched = [s for s in skills if s in tl]
-        if matched:
-            found[cat] = matched
+        if matched: found[cat] = matched
     return found
 
 def match_jobs(text, jobs_list, category, min_match):
@@ -158,29 +126,20 @@ def match_jobs(text, jobs_list, category, min_match):
     skills_found = extract_skills(text)
     detected = list(skills_found.keys()) or ["tech", "engineering", "business"]
     cats = {"all": ["tech", "engineering", "business"], "auto": detected}.get(category, [category])
-
     filtered = []
     for job in jobs_list:
-        if job.get("category", "general") not in cats:
-            continue
-
-        job_desc = (job.get("description", "") + " " + job.get("title", "")).lower()
-        matched = []
-        for skill in SKILLS_DB.get(job.get("category", "tech"), []):
-            if skill in tl or skill in job_desc:
-                matched.append(skill)
-
+        if job.get("category", "general") not in cats: continue
+        job_desc = (job.get("title", "")).lower()
+        matched = [s for s in SKILLS_DB.get(job.get("category", "tech"), []) if s in tl or s in job_desc]
         all_relevant = SKILLS_DB.get(job.get("category", "tech"), [])
         score = int((len(matched) / len(all_relevant)) * 100) if all_relevant else 50
         filtered.append({"job": job, "score": score, "matched": matched[:10], "missing": []})
-
     strong = [r for r in filtered if r["score"] >= min_match]
     results = strong if strong else filtered
     return sorted(results, key=lambda x: x["score"], reverse=True)
 
 def clean_pdf_text(text):
-    if not text:
-        return ""
+    if not text: return ""
     for old, new in {"'": "-", "'": "'", "\u201c": '"', "\u201d": '"', "\t": " "}.items():
         text = text.replace(old, new)
     text = re.sub(r"[^\x00-\x7F]+", " ", text)
@@ -193,37 +152,23 @@ def generate_pdf_bytes(text):
     title_s = ParagraphStyle("T", parent=styles["Title"], fontSize=22, alignment=TA_CENTER, textColor="#0A66C2")
     heading_s = ParagraphStyle("H", parent=styles["Heading2"], fontSize=13, textColor="#111827", spaceBefore=14)
     body_s = ParagraphStyle("B", parent=styles["Normal"], fontSize=10.5, leading=14, textColor="#111827")
-
     email = re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
     phone = re.search(r"(\+?\d{1,3}[-.]?)?\d{3}[-.]?\d{3}[-.]?\d{4}", text)
     clean = clean_pdf_text(text)
     lines = [l.strip() for l in clean.split(".") if len(l.strip()) > 15]
     all_skills = [s for skills in extract_skills(text).values() for s in skills]
-
-    story = [
-        Paragraph("OPTIMIZED RESUME", title_s),
-        Paragraph(f"{email.group() if email else 'email@example.com'} | {phone.group() if phone else 'Phone'}", body_s),
-        Spacer(1, 0.15*inch),
-        Paragraph("PROFESSIONAL SUMMARY", heading_s),
-        HRFlowable(width="100%", thickness=1, color="#0A66C2"),
-        Paragraph("Results-driven professional with proven ability to deliver high-quality results.", body_s),
-        Paragraph("CORE SKILLS", heading_s),
-        HRFlowable(width="100%", thickness=1, color="#0A66C2"),
-        Paragraph(", ".join([s.title() for s in all_skills[:25]]) if all_skills else "Add skills here.", body_s),
-        Paragraph("EXPERIENCE / PROJECTS", heading_s),
-        HRFlowable(width="100%", thickness=1, color="#0A66C2"),
-    ]
-
+    story = [Paragraph("OPTIMIZED RESUME", title_s), Paragraph(f"{email.group() if email else 'email@example.com'} | {phone.group() if phone else 'Phone'}", body_s), Spacer(1, 0.15*inch),
+             Paragraph("PROFESSIONAL SUMMARY", heading_s), HRFlowable(width="100%", thickness=1, color="#0A66C2"),
+             Paragraph("Results-driven professional with proven ability to deliver high-quality results.", body_s),
+             Paragraph("CORE SKILLS", heading_s), HRFlowable(width="100%", thickness=1, color="#0A66C2"),
+             Paragraph(", ".join([s.title() for s in all_skills[:25]]) if all_skills else "Add skills here.", body_s),
+             Paragraph("EXPERIENCE / PROJECTS", heading_s), HRFlowable(width="100%", thickness=1, color="#0A66C2")]
     if lines:
-        for line in lines[:10]:
-            story.append(Paragraph("- " + line[:220], body_s))
-    else:
-        story.append(Paragraph("- Add experience here.", body_s))
-
+        for line in lines[:10]: story.append(Paragraph("- " + line[:220], body_s))
+    else: story.append(Paragraph("- Add experience here.", body_s))
     story.append(Paragraph("EDUCATION", heading_s))
     story.append(HRFlowable(width="100%", thickness=1, color="#0A66C2"))
     story.append(Paragraph("- Add education details here.", body_s))
-
     doc.build(story)
     pdf = buffer.getvalue()
     buffer.close()
@@ -231,47 +176,20 @@ def generate_pdf_bytes(text):
 
 def cover_letter(job, matched):
     skills = ", ".join(matched[:5]) or "my skills"
-    return f"""Dear Hiring Manager,
-
-I am writing to express my interest in the {job['title']} position at {job['company']}.
-
-With expertise in {skills}, I believe I can contribute effectively to your team.
-
-Thank you for considering my application.
-
-Best regards,
-[Your Name]
-"""
+    return f"""Dear Hiring Manager,\n\nI am writing to express my interest in the {job['title']} position at {job['company']}.\n\nWith expertise in {skills}, I believe I can contribute effectively to your team.\n\nThank you for considering my application.\n\nBest regards,\n[Your Name]\n"""
 
 def improvement_plan(score, issues, wc):
-    priorities = []
-    if score < 70:
-        priorities.append("HIGH: Resume needs critical ATS improvements.")
-    elif score < 85:
-        priorities.append("MEDIUM: Good resume, can be optimized further.")
-    else:
-        priorities.append("LOW: Resume is strong.")
-    for i in issues:
-        priorities.append(i)
-    actions = [
-        "Use standard headings: Experience, Education, Skills.",
-        "Add measurable achievements with numbers and percentages.",
-        "Tailor keywords for each job description.",
-        "Add LinkedIn, GitHub, or portfolio links.",
-        "Use bullet points and avoid tables or graphics.",
-        "Keep the resume concise and focused."
-    ]
+    priorities = ["HIGH: Resume needs critical ATS improvements." if score < 70 else "MEDIUM: Good resume, can be optimized further." if score < 85 else "LOW: Resume is strong."]
+    for i in issues: priorities.append(i)
+    actions = ["Use standard headings: Experience, Education, Skills.", "Add measurable achievements with numbers and percentages.", "Tailor keywords for each job description.", "Add LinkedIn, GitHub, or portfolio links.", "Use bullet points and avoid tables or graphics.", "Keep the resume concise and focused."]
     return priorities, actions
 
 def main():
     st.set_page_config(page_title=APP_NAME, layout="wide")
-
     st.markdown("""<style>
     .stApp { background-color: #0e1117; color: #ffffff; }
     [data-testid="stSidebar"] { background-color: #262730; }
-    div[data-baseweb="select"] > div, input, textarea, [data-testid="stFileUploader"] section {
-        background-color: #111827 !important; color: #ffffff !important;
-        border: 1px solid #374151 !important; border-radius: 10px !important; }
+    div[data-baseweb="select"] > div, input, textarea, [data-testid="stFileUploader"] section { background-color: #111827 !important; color: #ffffff !important; border: 1px solid #374151 !important; border-radius: 10px !important; }
     .score-title { text-align: center; color: #1f77d0; font-size: 42px; font-weight: 800; }
     .job-card { background: #111827; border: 1px solid #374151; border-radius: 14px; padding: 20px; margin: 16px 0; }
     .job-card h3 { color: #ffffff; }
@@ -286,20 +204,17 @@ def main():
     .linkedin-badge { background: linear-gradient(90deg, #0077B5, #00A0DC); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
     </style>""", unsafe_allow_html=True)
 
-    if "lang" not in st.session_state:
-        st.session_state.lang = "en"
-    if "pdf_bytes" not in st.session_state:
-        st.session_state.pdf_bytes = None
+    if "lang" not in st.session_state: st.session_state.lang = "en"
+    if "pdf_bytes" not in st.session_state: st.session_state.pdf_bytes = None
 
     with st.sidebar:
         lang_pick = st.selectbox("🌐", ["English", "العربية"], index=0 if st.session_state.lang == "en" else 1)
         st.session_state.lang = "ar" if lang_pick == "العربية" else "en"
         lang = st.session_state.lang
         L = get_text(lang)
-
         st.markdown("---")
         st.header("⚙️ " + L["settings"])
-        uploaded = st.file_uploader(L["upload"], type=["pdf", "docx"], help="Max file size: 10MB")
+        uploaded = st.file_uploader(L["upload"], type=["pdf", "docx"])
         regions_map = {"Global / Remote": "Global", "Saudi Arabia": "Saudi Arabia", "UAE": "UAE", "Egypt": "Egypt", "Qatar": "Qatar", "Jordan": "Jordan"}
         region_label = st.selectbox("🌍 " + L["region"], list(regions_map.keys()))
         region_code = regions_map[region_label]
@@ -351,28 +266,21 @@ def main():
                 st.markdown(f"**{cats.get(cat, cat)}:** {pills}", unsafe_allow_html=True)
         st.subheader("⚠️ " + L["issues_title"])
         if issues:
-            for i in issues:
-                st.warning(i)
-        else:
-            st.success(L["no_issues"])
+            for i in issues: st.warning(i)
+        else: st.success(L["no_issues"])
 
     with tab2:
         st.subheader("🎯 " + L["priorities"])
-        for p in priorities:
-            st.markdown(f"<div class='suggestion-box'>{p}</div>", unsafe_allow_html=True)
+        for p in priorities: st.markdown(f"<div class='suggestion-box'>{p}</div>", unsafe_allow_html=True)
         st.subheader("📋 " + L["action_plan"])
-        for i, a in enumerate(actions, 1):
-            st.write(f"**{i}.** {a}")
+        for i, a in enumerate(actions, 1): st.write(f"**{i}.** {a}")
         target = st.slider(L["target_score"], 0, 100, 90)
-        if ats_score >= target:
-            st.success(L["target_reached"])
-        else:
-            st.warning(f"{L['need_more']}: {target - ats_score}")
+        if ats_score >= target: st.success(L["target_reached"])
+        else: st.warning(f"{L['need_more']}: {target - ats_score}")
 
     with tab3:
         st.subheader("🎯 " + L["jobs_in"] + f" {region_code}")
         st.markdown('<span class="linkedin-badge">💼 Powered by LinkedIn Jobs</span>', unsafe_allow_html=True)
-
         if not jobs:
             st.warning(L["no_jobs"])
         else:
@@ -380,7 +288,6 @@ def main():
             fig = px.bar(chart_data, x="Score", y="Job", orientation="h", color="Score", color_continuous_scale=["red", "yellow", "green"])
             fig.update_layout(yaxis=dict(autorange="reversed"))
             st.plotly_chart(fig, use_container_width=True)
-
             for item in jobs:
                 job = item["job"]
                 score = item["score"]
@@ -397,13 +304,11 @@ def main():
                     st.markdown(f"**{L['matched']}:**")
                     if item["matched"]:
                         st.markdown(" ".join([f"<span class='matched-pill'>✓ {s}</span>" for s in item["matched"]]), unsafe_allow_html=True)
-                    else:
-                        st.caption("-")
+                    else: st.caption("-")
                 with c2:
                     st.markdown(f"**{L['missing']}:**")
-                    st.caption("Review job description for full requirements")
-                if job.get("url"):
-                    st.link_button("🚀 " + L["apply"], job["url"])
+                    st.caption("Review job description for requirements")
+                if job.get("url"): st.link_button("🚀 " + L["apply"], job["url"])
                 with st.expander("📝 " + L["cover_letter"] + " " + job["title"]):
                     st.text_area("", value=cover_letter(job, item["matched"]), height=160, key=f"cv_{job.get('id','')}")
                 st.markdown("---")
